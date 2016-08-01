@@ -116,13 +116,13 @@ public class KafkaConnectService {
 						break;
 					}
 				}
+				// find leader, get out of this loop
 				if (leaderPartitionMetadata != null) {
 					break;
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			_logger.warn("Failed to find leader of parition {}, Kafka broker={}, port={}, topic={}. Error: {}", partition, host, port, kafkaConsumeConf.getTopic(), e.getMessage());
 		} finally {
 			if (leaderFindConsumer != null) {
 				leaderFindConsumer.close();
