@@ -1,14 +1,20 @@
 package kafka.sink.consume;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import kafka.api.FetchRequest;
+import kafka.api.FetchRequestBuilder;
 import kafka.api.PartitionOffsetRequestInfo;
+import kafka.common.ErrorMapping;
+import kafka.common.OffsetAndMetadata;
+import kafka.common.Topic;
 import kafka.common.TopicAndPartition;
 import kafka.javaapi.FetchResponse;
+import kafka.javaapi.OffsetCommitRequest;
+import kafka.javaapi.OffsetCommitResponse;
 import kafka.javaapi.OffsetFetchRequest;
 import kafka.javaapi.OffsetFetchResponse;
 import kafka.javaapi.OffsetRequest;
@@ -20,7 +26,9 @@ import kafka.javaapi.TopicMetadataResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.sink.conf.KafkaConsumeConfig;
 import kafka.sink.conf.ZookeeperConfig;
+import kafka.sink.exception.KafkaClientNotRecoverableException;
 import kafka.sink.exception.KafkaClientRecoverableException;
+import kafka.sink.util.StartOffsetEnum;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,8 +232,51 @@ public class KafkaClientService implements KafkaClient {
 
 	@Override
 	public long computeInitialOffset() throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+		long offsetForThisRound = -1L;
+		long earliestOffset = getEarliestOffset();
+		
+		_logger.info("--- Compute kafka start offset--- topic=[{}], partition=[{}], startOffsetFrom=[{}], earliestOffset=[{}]...", kafkaConsumeConf.getTopic(), partition, kafkaConsumeConf.getStartOffsetFrom(), earliestOffset);
+		switch (StartOffsetEnum.getStartOffsetType(kafkaConsumeConf.getStartOffsetFrom())) {
+		case CUSTOM:
+			long customOffset = kafkaConsumeConf.getStartOffset();
+			if (customOffset >= 0) {
+				offsetForThisRound = customOffset;
+			} else {
+				throw new KafkaClientNotRecoverableException("Restarting from the CUSTOM offset=[" + customOffset
+								+ "] for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "].");
+			}
+			break;
+		case EARLIEST:
+			offsetForThisRound = earliestOffset;
+			break;
+		case LATEST:
+			offsetForThisRound = getLastestOffset();
+			break;
+		case RESTART:
+			offsetForThisRound = fetchCurrentOffsetFromKafka();
+			break;
+		default:
+			break;
+		}
+		
+		if (offsetForThisRound < 0) {
+			if (earliestOffset >= 0) {
+				offsetForThisRound = earliestOffset;
+				_logger.info("OffsetForThisRound is set to the Earliest offset since currentOffset is < 0. OffsetForThisRound=[{}] for topic=[{}], partition=[{}].", offsetForThisRound, kafkaConsumeConf.getTopic(), partition);
+				saveOffset(offsetForThisRound, ErrorMapping.NoError());
+			} else {
+				throw new KafkaClientRecoverableException("Failed to set the current offset to Earliest offset since earliest offset is < 0 for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], exiting... ");
+			}
+		}
+		
+		if (offsetForThisRound < earliestOffset) {
+			_logger.warn("WARNING: computed offset=[{}] is less than EarliestOffset=[{}], setting offsetForThisRound to the EarliestOffset for topic=[{}], partition=[{}]...", offsetForThisRound, earliestOffset, kafkaConsumeConf.getTopic(), partition);
+			offsetForThisRound = earliestOffset;
+			saveOffset(offsetForThisRound, ErrorMapping.NoError());
+		}
+		
+		_logger.info("--- Compute kafka start offset done--- OffsetForThisRound=[{}] for topic=[{}], partition=[{}].", offsetForThisRound, kafkaConsumeConf.getTopic(), partition);
+		return offsetForThisRound;
 	}
 
 	@Override
@@ -283,20 +334,64 @@ public class KafkaClientService implements KafkaClient {
 	
 	@Override
 	public FetchResponse getMessagesFromKafka(long offset) throws KafkaClientRecoverableException {
-		// TODO
-		return null;
+		try {
+			FetchRequest fetchRequest = new FetchRequestBuilder().clientId(kafkaClientId).addFetch(kafkaConsumeConf.getTopic(), partition, offset, kafkaConsumeConf.getKafkaFetchSize()).build();
+			FetchResponse fetchResponse = simpleConsumer.fetch(fetchRequest);
+			return fetchResponse;
+		} catch (Exception e) {
+			_logger.error("---fetching messages failed---topic=[{}], partiition=[{}], offset=[{}].", kafkaConsumeConf.getTopic(), partition, offset);
+			throw new KafkaClientRecoverableException("Error fetching messages from kafka for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], offset=[" + offset + "]", e);
+		}
 	}
 
 	@Override
 	public Long handleErrorFromFetchMessages(short errorCode, long offsetForThisRound) throws Exception {
-		// TODO Auto-generated method stub
+		_logger.error("Error fetching events from kafka, error code=[{}], topic=[{}], partition=[{}]...", errorCode, kafkaConsumeConf.getTopic(), partition);
+		
+		if (errorCode == ErrorMapping.OffsetOutOfRangeCode()) {
+			_logger.error("OffsetOutOfRange error code: partition=[{}], offsetForThisRound=[{}]", errorCode, offsetForThisRound);
+			long earliestOffset = getEarliestOffset();
+			if (earliestOffset < 0) {
+				throw new Exception("OffsetOutOfRange error for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], earliest offset=[" + earliestOffset + "], exiting...");
+			}
+			saveOffset(earliestOffset, errorCode);
+		} else if (errorCode == ErrorMapping.InvalidMessageCode()) {
+			_logger.error("InvalidMessage error code - not handling it. Returning for topic=[{}], partition=[{}].", kafkaConsumeConf.getTopic(), partition);
+		} else if (errorCode == ErrorMapping.MessageSizeTooLargeCode()) {
+			_logger.error("MessageSizeTooLarge error code - not handling it. Returning for topic=[{}], partition=[{}].", kafkaConsumeConf.getTopic(), partition);
+		} else if (errorCode == ErrorMapping.OffsetMetadataTooLargeCode()) {
+			_logger.error("OffsetMetadataTooLarge error code - not handling it. Returning for topic=[{}], partition=[{}].", kafkaConsumeConf.getTopic(), partition);
+		} else {
+			_logger.error("Handle error code=[{}] for topic=[{}], partition=[{}].", errorCode, kafkaConsumeConf.getTopic(), partition);
+			// re-init kafka to recover error. 
+			reInitKafka();
+			// TODO other error re-init ?
+		}
+		
 		return null;
 	}
 
 	@Override
 	public void saveOffset(long offset, short errorCode) throws KafkaClientRecoverableException {
-		// TODO Auto-generated method stub
+		short versionId = 0;
+		int correlationId = 0;
 		
+		try {
+			TopicAndPartition tp = new TopicAndPartition(kafkaConsumeConf.getTopic(), partition);
+			OffsetAndMetadata offsetMetaAndErr = new OffsetAndMetadata(offset, OffsetAndMetadata.NoMetadata(), errorCode);
+			Map<TopicAndPartition, OffsetAndMetadata> mapForConmmitOffset = Collections.singletonMap(tp, offsetMetaAndErr);
+			
+			OffsetCommitRequest offsetCommitRequest = new OffsetCommitRequest(kafkaClientId, mapForConmmitOffset, correlationId, kafkaClientId, versionId);
+			OffsetCommitResponse offsetCommitResponse = simpleConsumer.commitOffsets(offsetCommitRequest);
+
+			Short responseErrorCode = (Short)offsetCommitResponse.errors().get(tp);
+			if (responseErrorCode != null && responseErrorCode != ErrorMapping.NoError()) {
+				throw new KafkaClientRecoverableException("Error saving offset=[" + offset + "] for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "]. Error code = " + responseErrorCode);
+			}
+		} catch (Exception e) {
+			_logger.error("---save offset failed---topic=[{}], partition=[{}], offset=[{}].", kafkaConsumeConf.getTopic(), partition, offset);
+			throw new KafkaClientRecoverableException("Error saving offset=[" + offset + " for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], offset=[" + offset + "].", e);
+		}
 	}
 
 	@Override
