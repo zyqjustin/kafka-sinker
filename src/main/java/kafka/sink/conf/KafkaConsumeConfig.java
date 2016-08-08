@@ -4,6 +4,7 @@ public class KafkaConsumeConfig {
 
 	/*-----kafka basic conf-----*/
 	// consumer topic
+	@ConfigableField(name="kafka.consumer.topic")
 	private String topic;
 	// kafka zookeeper's [ip:port] list
 	private String kafkaZookeeperList;
