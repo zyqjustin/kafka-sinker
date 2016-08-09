@@ -10,6 +10,9 @@ public class TimedAndFileSizeRotator implements Rotator {
 		this.fileSizeRotator = fileSizeRotator;
 	}
 
+	/**
+	 * TODO I think TimeRotator should judge again.
+	 */
 	@Override
 	public boolean mark(String mes, long offset) {
 		return timedRotator.mark(mes, offset) || fileSizeRotator.mark(mes, offset);

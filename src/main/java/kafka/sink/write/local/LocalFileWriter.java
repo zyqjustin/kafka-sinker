@@ -28,28 +28,10 @@ public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
 		super(fileNameFormat, rotator);
 		
 		try {
-			initBufferedWriter();
+			createWriteFile();
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Init local file buffered writer failed.", e);
+			throw new RuntimeException("Create buffered writer for local file failed, file dir: " + fileDir, e);
 		}
-	}
-
-	public void initBufferedWriter() throws IOException {
-		this.fileDir = fileNameFormat.getPath() + "/" + fileNameFormat.getName(new Date().getTime());
-
-		File filePath = new File(fileNameFormat.getPath());
-		if (!filePath.exists()) {
-			filePath.mkdirs();
-		}
-		
-		File file = new File(this.fileDir);
-		if (!file.exists()) {
-			file.createNewFile();
-		}
-		
-		fileOutputStream = new FileOutputStream(file, true);
-		outputStreamWriter = new OutputStreamWriter(fileOutputStream);
-		bufferedWriter = new BufferedWriter(outputStreamWriter);
 	}
 
 	@Override
@@ -57,9 +39,17 @@ public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
 		if (_logger.isDebugEnabled()) {
 			_logger.debug("Write local file=[{}].", fileDir);
 		}
+		
+		String mes;
+		while ((mes = messages.poll()) != null) {
+			bufferedWriter.append(mes);
+			bufferedWriter.newLine();
+			bufferedWriter.flush();
+		}
 	}
 	
-	public void close() {
+	@Override
+	public void closeWriteFile() throws IOException {
 		try {
 			if (bufferedWriter != null) {
 				bufferedWriter.close();
@@ -73,6 +63,27 @@ public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
 		} catch (IOException e) {
 			_logger.warn("Close local file buffered writer failed. Error messages: {}", e.getMessage());
 		}
+	}
+	
+	@Override
+	public String createWriteFile() throws IOException {
+		this.fileDir = fileNameFormat.getPath() + "/" + fileNameFormat.getName(new Date().getTime());
+		
+		File filePath = new File(fileNameFormat.getPath());
+		if (!filePath.exists()) {
+			filePath.mkdirs();
+		}
+		
+		File file = new File(this.fileDir);
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		
+		fileOutputStream = new FileOutputStream(file, true);
+		outputStreamWriter = new OutputStreamWriter(fileOutputStream);
+		bufferedWriter = new BufferedWriter(outputStreamWriter);		
+		
+		return fileDir;
 	}
 	
 }
