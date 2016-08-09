@@ -2,7 +2,7 @@ package kafka.sink.rotate;
 
 public interface Rotator {
 
-	public boolean rotate();
+	public boolean mark(String mes, long offset);
 	
 	public void reset();
 }

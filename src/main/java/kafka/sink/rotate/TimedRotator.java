@@ -27,18 +27,17 @@ public class TimedRotator implements Rotator {
 	}
 
 	@Override
-	public boolean rotate() {
-		// TODO Auto-generated method stub
+	public boolean mark(String mes, long offset) {
 		return false;
 	}
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
+		// do nothing
 	}
 
 	public long getInterval() {
-		return interval;
+		return this.interval;
 	}
-	
+
 }

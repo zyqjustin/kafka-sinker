@@ -1,33 +1,32 @@
 package kafka.sink.rotate;
 
-import kafka.sink.rotate.FileSizeRotator.SizeUnits;
+public class TimedAndFileSizeRotator implements Rotator {
 
-public class TimedAndFileSizeRotator extends TimedRotator {
-
-	private long maxBytes;
-	private long currentBytesWritten = 0; 
+	private TimedRotator timedRotator;
+	private FileSizeRotator fileSizeRotator;
 	
-	public TimedAndFileSizeRotator(float count, TimeUnit units, float fileCount, SizeUnits sizeUnits) {
-		super(count, units);
-		this.maxBytes = (long)(fileCount * sizeUnits.getByteCount());
+	public TimedAndFileSizeRotator(TimedRotator timedRotator, FileSizeRotator fileSizeRotator) {
+		this.timedRotator = timedRotator;
+		this.fileSizeRotator = fileSizeRotator;
 	}
 
 	@Override
-	public boolean rotate() {
-		return this.currentBytesWritten >= this.maxBytes;
+	public boolean mark(String mes, long offset) {
+		return timedRotator.mark(mes, offset) || fileSizeRotator.mark(mes, offset);
 	}
 
 	@Override
 	public void reset() {
-		this.currentBytesWritten = 0L;
+		timedRotator.reset();
+		fileSizeRotator.reset();
 	}
 
-	public long getMaxBytes() {
-		return maxBytes;
+	public TimedRotator getTimedRotator() {
+		return timedRotator;
 	}
 
-	public long getCurrentBytesWritten() {
-		return currentBytesWritten;
+	public FileSizeRotator getFileSizeRotator() {
+		return fileSizeRotator;
 	}
 	
 }
