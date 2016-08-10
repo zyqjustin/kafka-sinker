@@ -9,6 +9,12 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * why not create a project for tool code
+ * @author zhuyuqiang
+ * @date 2016年8月3日 下午1:44:57
+ * @version 1.0
+ */
 public class ConfigLoader {
 	private static final Logger _logger = LoggerFactory.getLogger(ConfigLoader.class);
 

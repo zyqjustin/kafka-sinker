@@ -1,34 +1,53 @@
 package kafka.sink.conf;
 
+/**
+ * TODO create a consumer.properties.template !!!!!
+ * @author zhuyuqiang
+ * @date 2016年8月10日 下午2:38:19
+ * @version 1.0
+ */
 public class KafkaConsumeConfig {
 
 	/*-----kafka basic conf-----*/
 	// consumer topic
-	@ConfigableField(name="kafka.consumer.topic")
+	@ConfigableField(name = "kafka.consumer.topic")
 	private String topic;
 	// kafka zookeeper's [ip:port] list
+	@ConfigableField(name = "kafka.zookeeper.list")
 	private String kafkaZookeeperList;
 	// kafka brokers' [ip:post] list
+	@ConfigableField(name = "kafka.broker.list")
 	private String kafkaBrokersList;
 	/*-----kafka consume conf-----*/
 	// kafka consumer reinit time;
+	@ConfigableField(name = "kafka.client.reinit.count", required = false, defaultValue = "5")
 	private int kafkaReinitCount;
 	// kafka consumer reinit sleep time (unit: ms)
+	@ConfigableField(name = "kafka.client.reinit.sleep.ms", required = false, defaultValue = "2000")
 	private int kafkaReinitSleepTimeMs;
 	// kafka consumer consume start offset
 	// values: CUSTOM/EARLIEST/LATEST/RESTART
+	@ConfigableField(name = "kafka.consumer.startOffset.from", required = false, defaultValue = "RESTART")
 	private String startOffsetFrom;
-	// if startOffsetFrom = CUSTOM, this value has to be set as int value, which means consume start offset 
+	// if startOffsetFrom = CUSTOM, this value has to be set as int value, which means consume start offset
+	@ConfigableField(name = "kafka.consumer.startOffset", required = false, defaultValue = "0")
 	private int startOffset;
 	// kafka consume group
+	@ConfigableField(name = "kafka.consumer.group.name", required = false, defaultValue = "kafka-sinker")
 	private String kafkaConsumerGroupName;
 	// SimpleConsumer socket buffersize
+	// default: "31457280(bytes) = 10 * 1024 * 1024 * 3"
+	@ConfigableField(name = "kafka.consumer.socket.buffer.bytes", required = false, defaultValue = "31457280")
 	private int kafkaConsumerSocketBufferSize;
 	// SimpleConsumer socket timeout (unit: ms)
+	@ConfigableField(name = "kafka.consumer.socket.timeout.ms", required = false, defaultValue = "10000")
 	private int kafkaConsumerSocketTimeoutMs;
 	// fetch size
+	// default: "31457280(bytes) = 10 * 1024 * 1024 * 3"
+	@ConfigableField(name = "kafka.consumer.fetch.bytes", required = false, defaultValue = "31457280")
 	private int kafkaFetchSize;
-	// times of retry find partitions's leader 
+	// times of retry find partitions's leader
+	@ConfigableField(name = "kafka.client.find.leader.retry.count", required = false, defaultValue = "10")
 	private int leaderFindRetryCount;
 
 	// setters and getters

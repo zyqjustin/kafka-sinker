@@ -19,10 +19,10 @@ import kafka.sink.write.FileWrite;
 public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
 	private static final Logger _logger = LoggerFactory.getLogger(LocalFileWriter.class);
 
+	private String fileDir;
 	private FileOutputStream fileOutputStream;
 	private OutputStreamWriter outputStreamWriter;
 	private BufferedWriter bufferedWriter;
-	private String fileDir;
 
 	public LocalFileWriter(FileNameFormat fileNameFormat, Rotator rotator) {
 		super(fileNameFormat, rotator);
