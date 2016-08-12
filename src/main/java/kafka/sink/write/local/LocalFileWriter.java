@@ -16,6 +16,12 @@ import kafka.sink.rotate.Rotator;
 import kafka.sink.write.DefaultFileWriter;
 import kafka.sink.write.FileWrite;
 
+/**
+ * TODO thinking how to update offset in rotator, then rotate file!
+ * @author zhuyuqiang
+ * @date 2016年8月12日 下午4:26:54
+ * @version 1.0
+ */
 public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
 	private static final Logger _logger = LoggerFactory.getLogger(LocalFileWriter.class);
 

@@ -18,24 +18,31 @@ public class ZookeeperConfig {
 	public int getZkSessionTimeout() {
 		return zkSessionTimeout;
 	}
+
 	public void setZkSessionTimeout(int zkSessionTimeout) {
 		this.zkSessionTimeout = zkSessionTimeout;
 	}
+
 	public int getZkConnectionTimeout() {
 		return zkConnectionTimeout;
 	}
+
 	public void setZkConnectionTimeout(int zkConnectionTimeout) {
 		this.zkConnectionTimeout = zkConnectionTimeout;
 	}
+
 	public int getZkCuratorRetryTimes() {
 		return zkCuratorRetryTimes;
 	}
+
 	public void setZkCuratorRetryTimes(int zkCuratorRetryTimes) {
 		this.zkCuratorRetryTimes = zkCuratorRetryTimes;
 	}
+
 	public int getZkCuratorRetryDelayMs() {
 		return zkCuratorRetryDelayMs;
 	}
+
 	public void setZkCuratorRetryDelayMs(int zkCuratorRetryDelayMs) {
 		this.zkCuratorRetryDelayMs = zkCuratorRetryDelayMs;
 	}

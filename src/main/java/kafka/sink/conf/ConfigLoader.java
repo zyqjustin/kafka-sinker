@@ -22,11 +22,13 @@ public class ConfigLoader {
 	private KafkaConsumeConfig consumerConf;
 	private ZookeeperConfig zkConf;
 
-	public ConfigLoader(String path) {
+	public ConfigLoader() {
 		this.conf = new Properties();
 		this.consumerConf = new KafkaConsumeConfig();
 		this.zkConf = new ZookeeperConfig();
-		
+	}
+	
+	public void load(String path) throws Exception {
 		try {
 			conf.load(new FileInputStream(path));
 		} catch (FileNotFoundException e) {
@@ -34,15 +36,17 @@ public class ConfigLoader {
 			throw new IllegalArgumentException("Not found kafka-sinker config file, path is " + path, e);
 		} catch (IOException e) {
 			_logger.error("Failed to load kafka-sinker config file, path is {}. Error Message: {}", path, e.getMessage());
-			throw new  IllegalArgumentException("Failed to load kafka-sinker config file, path is " + path, e);
+			throw new IllegalArgumentException("Failed to load kafka-sinker config file, path is " + path, e);
 		}
 		
 		try {
 			assembleProperties(KafkaConsumeConfig.class);
 			assembleProperties(ZookeeperConfig.class);
 		} catch (Exception e) {
-			_logger.error("Assemble properties for consumer failed,");
+			_logger.error("Assemble properties for consumer failed.");
+			throw new IllegalArgumentException("Assemble properties for consumer failed.");
 		}
+		
 	}
 
 	private void assembleProperties(Class<?> clazz) throws Exception {
