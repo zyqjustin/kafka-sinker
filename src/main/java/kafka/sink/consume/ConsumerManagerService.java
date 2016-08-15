@@ -44,6 +44,7 @@ public class ConsumerManagerService {
 		// TODO need ?
 		consumerTasks = new ConcurrentHashMap<Integer, KafkaConsumerService>();
 		
+		
 		// TODO create partition consumer and start
 		// executorService.execute(new Thread(new KafkaConsumerService()));
 	}

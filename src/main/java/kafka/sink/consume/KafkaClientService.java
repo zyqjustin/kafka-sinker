@@ -55,11 +55,13 @@ public class KafkaClientService implements KafkaClient {
 	
 	public KafkaClientService() {
 	}
-
-	public KafkaClientService(int partition) {
+	
+	public KafkaClientService(int partition, KafkaConsumeConfig kafkaConsumeConf, ZookeeperConfig zkConf) {
+		this.kafkaConsumeConf = kafkaConsumeConf;
+		this.zkConf = zkConf;
 		this.partition = partition;
 	}
-	
+
 	public void init() throws Exception{
 		if (partition < 0) {
 			throw new IllegalArgumentException("Partition id is not be assigned.");
@@ -402,6 +404,14 @@ public class KafkaClientService implements KafkaClient {
 		this.partition = partition;
 	}
 	
+	public void setKafkaConsumeConf(KafkaConsumeConfig kafkaConsumeConf) {
+		this.kafkaConsumeConf = kafkaConsumeConf;
+	}
+
+	public void setZkConf(ZookeeperConfig zkConf) {
+		this.zkConf = zkConf;
+	}
+
 	static class BrokerInfo {
 		String ip;
 		int port;

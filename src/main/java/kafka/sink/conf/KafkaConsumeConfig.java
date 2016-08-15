@@ -49,7 +49,21 @@ public class KafkaConsumeConfig {
 	// times of retry find partitions's leader
 	@ConfigableField(name = "kafka.client.find.leader.retry.count", required = false, defaultValue = "10")
 	private int leaderFindRetryCount;
-
+	// write kafka messages to where.
+	// default: hdfs, or is local
+	@ConfigableField(name = "kafka.consumer.write.to", required = false, defaultValue = "hdfs")
+	private String kafkaConsumerWriteTo;
+	// write file rotate policy
+	// values: size/time/both
+	@ConfigableField(name = "kafka.consumer.write.rotate", required = true)
+	private String rotate;
+	@ConfigableField(name = "kafka.consumer.write.file.dir", required = false, defaultValue = "/log/kafkasinker")
+	private String writeFileDir;
+	@ConfigableField(name = "kafka.consumer.write.file.prefix", required = false, defaultValue = "")
+	private String writeFilePrefix;
+	@ConfigableField(name = "kafka.consumer.write.file.extension", required = false, defaultValue = ".txt")
+	private String writeFileExtension;
+	
 	// setters and getters
 	public String getTopic() {
 		return topic;
@@ -145,6 +159,46 @@ public class KafkaConsumeConfig {
 
 	public void setLeaderFindRetryCount(int leaderFindRetryCount) {
 		this.leaderFindRetryCount = leaderFindRetryCount;
+	}
+
+	public String getKafkaConsumerWriteTo() {
+		return kafkaConsumerWriteTo;
+	}
+
+	public void setKafkaConsumerWriteTo(String kafkaConsumerWriteTo) {
+		this.kafkaConsumerWriteTo = kafkaConsumerWriteTo;
+	}
+
+	public String getRotate() {
+		return rotate;
+	}
+
+	public void setRotate(String rotate) {
+		this.rotate = rotate;
+	}
+
+	public String getWriteFileDir() {
+		return writeFileDir;
+	}
+
+	public void setWriteFileDir(String writeFileDir) {
+		this.writeFileDir = writeFileDir;
+	}
+
+	public String getWriteFilePrefix() {
+		return writeFilePrefix;
+	}
+
+	public void setWriteFilePrefix(String writeFilePrefix) {
+		this.writeFilePrefix = writeFilePrefix;
+	}
+
+	public String getWriteFileExtension() {
+		return writeFileExtension;
+	}
+
+	public void setWriteFileExtension(String writeFileExtension) {
+		this.writeFileExtension = writeFileExtension;
 	}
 	
 }

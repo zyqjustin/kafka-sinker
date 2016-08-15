@@ -12,7 +12,7 @@ import kafka.sink.rotate.TimedRotator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DefaultFileWriter {
+public abstract class DefaultFileWriter implements FileWrite {
 	private static final Logger _logger = LoggerFactory.getLogger(DefaultFileWriter.class);
 
 	protected FileNameFormat fileNameFormat;

@@ -8,13 +8,12 @@ import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.Queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import kafka.sink.rotate.FileNameFormat;
 import kafka.sink.rotate.Rotator;
 import kafka.sink.write.DefaultFileWriter;
-import kafka.sink.write.FileWrite;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TODO thinking how to update offset in rotator, then rotate file!
@@ -22,7 +21,7 @@ import kafka.sink.write.FileWrite;
  * @date 2016年8月12日 下午4:26:54
  * @version 1.0
  */
-public class LocalFileWriter extends DefaultFileWriter implements FileWrite {
+public class LocalFileWriter extends DefaultFileWriter {
 	private static final Logger _logger = LoggerFactory.getLogger(LocalFileWriter.class);
 
 	private String fileDir;
