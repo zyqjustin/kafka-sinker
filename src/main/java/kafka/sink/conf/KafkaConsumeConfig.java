@@ -49,6 +49,7 @@ public class KafkaConsumeConfig {
 	// times of retry find partitions's leader
 	@ConfigableField(name = "kafka.client.find.leader.retry.count", required = false, defaultValue = "10")
 	private int leaderFindRetryCount;
+	
 	// write kafka messages to where.
 	// default: hdfs, or is local
 	@ConfigableField(name = "kafka.consumer.write.to", required = false, defaultValue = "hdfs")
@@ -57,10 +58,31 @@ public class KafkaConsumeConfig {
 	// values: size/time/both
 	@ConfigableField(name = "kafka.consumer.write.rotate", required = true)
 	private String rotate;
-	@ConfigableField(name = "kafka.consumer.write.file.dir", required = false, defaultValue = "/log/kafkasinker")
-	private String writeFileDir;
+	@ConfigableField(name = "kafka.consumer.rotate.size.kb", required = false, defaultValue = "0")
+	private int rotateSizeKb;
+	@ConfigableField(name = "kafka.consumer.rotate.size.mb", required = false, defaultValue = "0")
+	private int rotateSizeMb;
+	@ConfigableField(name = "kafka.consumer.rotate.size.gb", required = false, defaultValue = "0")
+	private int rotateSizeGb;
+	@ConfigableField(name = "kafka.consumer.rotate.size.tb", required = false, defaultValue = "0")
+	private int rotateSizeTb;
+	@ConfigableField(name = "kafka.consumer.rotate.time.sec", required = false, defaultValue = "0")
+	private int rotateTimeSec;
+	@ConfigableField(name = "kafka.consumer.rotate.time.min", required = false, defaultValue = "0")
+	private int rotateTimeMin;
+	@ConfigableField(name = "kafka.consumer.rotate.time.hour", required = false, defaultValue = "0")
+	private int rotateTimeHour;
+	@ConfigableField(name = "kafka.consumer.rotate.time.day", required = false, defaultValue = "0")
+	private int rotateTimeDay;
+	
+	// write file root path
+	// write file dir like /log/kafkasinker/2016/08/12/21/05...
+	@ConfigableField(name = "kafka.consumer.write.file.path", required = false, defaultValue = "/log/kafkasinker")
+	private String writeFilePath;
+	// write file name's prefix
 	@ConfigableField(name = "kafka.consumer.write.file.prefix", required = false, defaultValue = "")
 	private String writeFilePrefix;
+	// write file name's extension
 	@ConfigableField(name = "kafka.consumer.write.file.extension", required = false, defaultValue = ".txt")
 	private String writeFileExtension;
 	
@@ -177,12 +199,12 @@ public class KafkaConsumeConfig {
 		this.rotate = rotate;
 	}
 
-	public String getWriteFileDir() {
-		return writeFileDir;
+	public String getWriteFilePath() {
+		return writeFilePath;
 	}
 
-	public void setWriteFileDir(String writeFileDir) {
-		this.writeFileDir = writeFileDir;
+	public void setWriteFilePath(String writeFilePath) {
+		this.writeFilePath = writeFilePath;
 	}
 
 	public String getWriteFilePrefix() {
@@ -199,6 +221,70 @@ public class KafkaConsumeConfig {
 
 	public void setWriteFileExtension(String writeFileExtension) {
 		this.writeFileExtension = writeFileExtension;
+	}
+
+	public int getRotateSizeKb() {
+		return rotateSizeKb;
+	}
+
+	public void setRotateSizeKb(int rotateSizeKb) {
+		this.rotateSizeKb = rotateSizeKb;
+	}
+
+	public int getRotateSizeMb() {
+		return rotateSizeMb;
+	}
+
+	public void setRotateSizeMb(int rotateSizeMb) {
+		this.rotateSizeMb = rotateSizeMb;
+	}
+
+	public int getRotateSizeGb() {
+		return rotateSizeGb;
+	}
+
+	public void setRotateSizeGb(int rotateSizeGb) {
+		this.rotateSizeGb = rotateSizeGb;
+	}
+
+	public int getRotateSizeTb() {
+		return rotateSizeTb;
+	}
+
+	public void setRotateSizeTb(int rotateSizeTb) {
+		this.rotateSizeTb = rotateSizeTb;
+	}
+
+	public int getRotateTimeSec() {
+		return rotateTimeSec;
+	}
+
+	public void setRotateTimeSec(int rotateTimeSec) {
+		this.rotateTimeSec = rotateTimeSec;
+	}
+
+	public int getRotateTimeMin() {
+		return rotateTimeMin;
+	}
+
+	public void setRotateTimeMin(int rotateTimeMin) {
+		this.rotateTimeMin = rotateTimeMin;
+	}
+
+	public int getRotateTimeHour() {
+		return rotateTimeHour;
+	}
+
+	public void setRotateTimeHour(int rotateTimeHour) {
+		this.rotateTimeHour = rotateTimeHour;
+	}
+
+	public int getRotateTimeDay() {
+		return rotateTimeDay;
+	}
+
+	public void setRotateTimeDay(int rotateTimeDay) {
+		this.rotateTimeDay = rotateTimeDay;
 	}
 	
 }

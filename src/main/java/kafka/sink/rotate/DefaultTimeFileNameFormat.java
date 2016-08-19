@@ -6,7 +6,7 @@ import java.util.Date;
 public class DefaultTimeFileNameFormat implements FileNameFormat {
 
 	private String clientId;
-	private String path = "kafkasinker";
+	private String path = "/log/kafkasinker";
 	private String prefix = "";
 	private String extension = ".txt";
 	

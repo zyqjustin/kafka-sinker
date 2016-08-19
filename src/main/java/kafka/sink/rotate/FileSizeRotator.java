@@ -25,7 +25,7 @@ public class FileSizeRotator implements Rotator {
 	private long lastOffset = 0;
 	private long currentBytesWritten = 0;
 	
-	public FileSizeRotator(float count, SizeUnits units) {
+	public FileSizeRotator(int count, SizeUnits units) {
 		this.maxBytes = (long)(count * units.getByteCount());
 	}
 	

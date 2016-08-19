@@ -2,7 +2,7 @@ package kafka.sink.rotate;
 
 public class TimedRotator implements Rotator {
 	
-	public static enum TimeUnit {
+	public static enum TimeUnits {
 		
 		SECONDS(1000L),
 		MINUTES(1000L * 60),
@@ -11,7 +11,7 @@ public class TimedRotator implements Rotator {
 		
 		private long milliSeconds;
 		
-		private TimeUnit(long milliSeconds) {
+		private TimeUnits(long milliSeconds) {
 			this.milliSeconds = milliSeconds;
 		}
 
@@ -22,7 +22,7 @@ public class TimedRotator implements Rotator {
 	
 	private long interval;
 
-	public TimedRotator(float count, TimeUnit units) {
+	public TimedRotator(int count, TimeUnits units) {
 		this.interval = (long)(count * units.getMilliSeconds());
 	}
 
