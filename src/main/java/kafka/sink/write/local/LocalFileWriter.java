@@ -90,5 +90,10 @@ public class LocalFileWriter extends DefaultFileWriter {
 		
 		return fileDir;
 	}
+
+	@Override
+	public String getFilePath() {
+		return fileDir;
+	}
 	
 }

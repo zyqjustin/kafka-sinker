@@ -38,4 +38,10 @@ public class HdfsFileWriter extends DefaultFileWriter {
 		return null;
 	}
 
+	@Override
+	public String getFilePath() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

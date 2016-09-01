@@ -1,6 +1,6 @@
 package kafka.sink.exception;
 
-public class KafkaClientRecoverableException extends Exception {
+public class KafkaClientRecoverableException extends RuntimeException {
 
 	public KafkaClientRecoverableException() {
 		super();

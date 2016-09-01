@@ -199,7 +199,7 @@ public class KafkaClientService implements KafkaClient {
 	}
 
 	@Override
-	public void reInitKafka() throws Exception {
+	public void reInitKafka() throws KafkaClientRecoverableException {
 		for (int i = 0; i < kafkaConsumeConf.getKafkaReinitCount(); i++) {
 			try {
 				close();
@@ -346,14 +346,14 @@ public class KafkaClientService implements KafkaClient {
 	}
 
 	@Override
-	public Long handleErrorFromFetchMessages(short errorCode, long offsetForThisRound) throws Exception {
+	public Long handleErrorFromFetchMessages(short errorCode, long offsetForThisRound) throws KafkaClientRecoverableException, IllegalArgumentException {
 		_logger.error("Error fetching events from kafka, error code=[{}], topic=[{}], partition=[{}]...", errorCode, kafkaConsumeConf.getTopic(), partition);
 		
 		if (errorCode == ErrorMapping.OffsetOutOfRangeCode()) {
 			_logger.error("OffsetOutOfRange error code: partition=[{}], offsetForThisRound=[{}]", errorCode, offsetForThisRound);
 			long earliestOffset = getEarliestOffset();
 			if (earliestOffset < 0) {
-				throw new Exception("OffsetOutOfRange error for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], earliest offset=[" + earliestOffset + "], exiting...");
+				throw new IllegalArgumentException("OffsetOutOfRange error for topic=[" + kafkaConsumeConf.getTopic() + "], partition=[" + partition + "], earliest offset=[" + earliestOffset + "], exiting...");
 			}
 			saveOffset(earliestOffset, errorCode);
 		} else if (errorCode == ErrorMapping.InvalidMessageCode()) {

@@ -21,7 +21,7 @@ public interface KafkaClient {
 	 * re-init kafka connect
 	 * @throws Exception
 	 */
-	public void reInitKafka() throws Exception;
+	public void reInitKafka() throws KafkaClientRecoverableException;
 	
 	/**
 	 * connect to zookeeper
@@ -84,7 +84,7 @@ public interface KafkaClient {
 	 * @return
 	 * @throws Exception
 	 */
-	public Long handleErrorFromFetchMessages(short errorCode, long offsetForThisRound) throws Exception;
+	public Long handleErrorFromFetchMessages(short errorCode, long offsetForThisRound) throws KafkaClientRecoverableException, IllegalArgumentException;
 	
 	/**
 	 * save offset after consume
