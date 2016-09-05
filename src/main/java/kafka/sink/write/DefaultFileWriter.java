@@ -22,7 +22,7 @@ public abstract class DefaultFileWriter implements FileWrite {
 	protected int rotationCount = 0;
 	protected Timer rotationTimer; 
 	
-	public DefaultFileWriter(FileNameFormat fileNameFormat, Rotator rotator) {
+	public DefaultFileWriter(FileNameFormat fileNameFormat, final Rotator rotator) {
 		this.fileNameFormat = fileNameFormat;
 		this.rotator = rotator;
 		
@@ -49,16 +49,21 @@ public abstract class DefaultFileWriter implements FileWrite {
 	}
 
 	public void rotateWriteFile() throws IOException {
-		_logger.info("Rotating write file...");
+		if (_logger.isDebugEnabled()) {
+			_logger.debug("Rotating write file...");
+		}
 		long start = System.currentTimeMillis();
 		synchronized (this.writeLock) {
 			closeWriteFile();
 			this.rotationCount++;
 			String filePathStr = createWriteFile();
+			rotator.reset();
 			_logger.info("Rotate file {} times, current file path=[{}].", rotationCount, filePathStr);
 		}
 		long period = System.currentTimeMillis() - start;
-		_logger.info("File rotation took {} ms.", period);
+		if (_logger.isDebugEnabled()) {
+			_logger.debug("File rotation took {} ms.", period);
+		}
 	}
 	
 	public abstract void closeWriteFile() throws IOException;

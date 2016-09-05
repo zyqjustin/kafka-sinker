@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,6 +34,7 @@ public class KafkaConsumerService implements Runnable {
 	private static Logger _logger = LoggerFactory.getLogger(KafkaConsumerService.class);
 	
 	private final static int ERROR_RETRY_COUNT = 100;
+	private final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 	
 	private KafkaClientService kafkaClient;
 	private KafkaConsumeConfig kafkaConsumeConf;
@@ -74,6 +77,9 @@ public class KafkaConsumerService implements Runnable {
 		// start task
 		this.consumeTaskStatus = KafkaConsumeTaskStatus.Started;
 		while (true) {
+			if (this.consumeTaskStatus == KafkaConsumeTaskStatus.Started || this.consumeTaskStatus == KafkaConsumeTaskStatus.Hanging) {
+				this.consumeTaskStatus = KafkaConsumeTaskStatus.Progressing;
+			}
 			FetchResponse fetchResponse = kafkaClient.getMessagesFromKafka(lastOffset);
 			if (fetchResponse.hasError()) {
 				errorCount++;
@@ -114,30 +120,44 @@ public class KafkaConsumerService implements Runnable {
 					_logger.warn("unspport encoding, error: {}", e.getMessage());
 				}
 				
+				// TODO sometimes will lose data
 				boolean isInQueue = messages.offer(mes);
+				if (isInQueue && rotator.mark(mes, lastOffset)) {
+					try {
+						fileWriter.rotateWriteFile();
+					} catch (IOException e) {
+						_logger.error("Rotate write file failed, file: [{}], error messagses: {}", fileWriter.getFilePath());
+						continue;
+					}
+				}
+				
 				long currentTime = System.currentTimeMillis() / 1000;
 				if (0 == lastTime || lastTime + 10 <= currentTime || !isInQueue) {
-					// if true, should rotate file
-					if (rotator.mark(mes, lastOffset)) { // TODO should add every message!!!!!
-						try {
-							fileWriter.rotateWriteFile();
-						} catch (IOException e) {
-							_logger.error("Rotate write file failed, file: [{}], error messagses: {}", fileWriter.getFilePath());
-							continue;
-						}
-						
+					int queueSize = messages.size();
+					try {
+						fileWriter.batchWrite(messages);
+						lastTime = currentTime;
+					} catch (IOException e) {
+						_logger.error("******file write failed!****** date=[{}], topic=[{}], partition=[{}], offset=[{}], messages queue size=[{}].", sdf.format(new Date()), kafkaConsumeConf.getTopic(), kafkaClient.getPartition(), lastOffset, queueSize);
+						continue;
 					}
+					_logger.info("......file write......date=[{}], topic=[{}], partition=[{}], offset=[{}], messages queue size=[{}].", sdf.format(new Date()), kafkaConsumeConf.getTopic(), kafkaClient.getPartition(), lastOffset, queueSize);
 				}
 			}
 		}
 		
 		stopKafkaClient();
+		this.consumeTaskStatus = KafkaConsumeTaskStatus.Stopped;
 	}
 
 	private void stopKafkaClient() {
 		if (kafkaClient != null) {
 			kafkaClient.close();
 		}
+	}
+	
+	public KafkaConsumeTaskStatus getTaskRunningStatus() {
+		return consumeTaskStatus;
 	}
 	
 	// TODO create file writer, rotator, fileNameFormat
